@@ -18,6 +18,35 @@ exec(char *path, char **argv)
   struct proghdr ph;
   pde_t *pgdir, *oldpgdir;
   struct proc *curproc = myproc();
+  struct thread *curthread = mythread();
+  struct thread *t;
+
+  /*Task 2.1*/
+  //tell all the other threads to destroy themselves
+  for(t=curproc->threads; t < &curproc->threads[NTHREAD]; t++){
+    if(t!=curthread && t->state != T_UNUSED)
+      t->killed = 1;
+  }
+
+
+  check:
+
+  // wakeup other threads so they can kill themselves :(
+  acquire_ptable();
+  for (t = curproc->threads; t < &curproc->threads[NTHREAD]; t++) {
+    if (t->state == T_SLEEPING) {
+      t->state = T_RUNNABLE;
+    }
+  }
+
+  release_ptable();
+
+  //check if all the other threads are dead and only then continue
+  for(t = curproc->threads; t < &curproc->threads[NTHREAD]; t++){
+    if(t!=curthread && t->state != T_UNUSED && t->state != T_ZOMBIE)
+      goto check; //other thread are not dead yet so go check again
+  }
+
 
   begin_op();
 
@@ -97,9 +126,9 @@ exec(char *path, char **argv)
   oldpgdir = curproc->pgdir;
   curproc->pgdir = pgdir;
   curproc->sz = sz;
-  curproc->tf->eip = elf.entry;  // main
-  curproc->tf->esp = sp;
-  switchuvm(curproc);
+  curthread->tf->eip = elf.entry;  // main
+  curthread->tf->esp = sp;
+  switchuvm(curproc, curthread);
   freevm(oldpgdir);
   return 0;
 

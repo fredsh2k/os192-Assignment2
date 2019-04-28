@@ -4,6 +4,7 @@
 #include "user.h"
 #include "x86.h"
 
+
 char*
 strcpy(char *s, const char *t)
 {
@@ -104,3 +105,8 @@ memmove(void *vdst, const void *vsrc, int n)
     *dst++ = *src++;
   return vdst;
 }
+
+
+
+
+

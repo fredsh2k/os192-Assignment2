@@ -89,3 +89,90 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+/*Task 2.2*/
+
+int
+sys_kthread_create(void)
+{
+  void (*func)();
+  void* stack;
+
+  if(argptr(0, (void*)&func, sizeof(*func)) < 0)
+    return -1;
+  if(argptr(1, (void*)&stack, sizeof(*stack)) < 0)
+    return -1;
+
+  return kthread_create(func, stack);
+}
+
+
+int
+sys_kthread_exit(void)
+{
+  kthread_exit();
+  return 0;
+}
+
+int
+sys_kthread_join(void)
+{
+  int tid;
+
+  if (argint(0, &tid) < 0)
+    return -1;
+
+  return kthread_join(tid);
+
+}
+
+
+int
+sys_kthread_id(void)
+{
+  return kthread_id();
+}
+
+int
+sys_kthread_mutex_alloc(void)
+{
+  return kthread_mutex_alloc();
+
+}
+
+int
+sys_kthread_mutex_dealloc(void)
+{
+
+  int mutex_id;
+
+  if (argint(0, &mutex_id) < 0)
+    return -1;
+
+  return kthread_mutex_dealloc(mutex_id);
+
+}
+
+int
+sys_kthread_mutex_lock(void)
+{
+  int mutex_id;
+
+  if (argint(0, &mutex_id) < 0)
+    return -1;
+
+  return kthread_mutex_lock(mutex_id);
+
+}
+
+int
+sys_kthread_mutex_unlock(void)
+{
+  int mutex_id;
+
+  if (argint(0, &mutex_id) < 0)
+    return -1;
+
+  return kthread_mutex_unlock(mutex_id);
+
+}

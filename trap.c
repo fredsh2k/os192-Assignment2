@@ -39,10 +39,20 @@ trap(struct trapframe *tf)
   if(tf->trapno == T_SYSCALL){
     if(myproc()->killed)
       exit();
-    myproc()->tf = tf;
+
+    if(mythread()->killed)
+      kthread_exit();
+
+    mythread()->tf = tf;
     syscall();
+
+
     if(myproc()->killed)
       exit();
+
+    if(mythread()->killed)
+      kthread_exit();
+
     return;
   }
 
@@ -100,9 +110,12 @@ trap(struct trapframe *tf)
   if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER)
     exit();
 
+  if(mythread() && mythread()->killed && (tf->cs&3) == DPL_USER)
+    kthread_exit();
+
   // Force process to give up CPU on clock tick.
   // If interrupts were on while locks held, would need to check nlock.
-  if(myproc() && myproc()->state == RUNNING &&
+  if(myproc() && mythread()->state == T_RUNNING &&
      tf->trapno == T_IRQ0+IRQ_TIMER)
     yield();
 
